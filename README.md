@@ -3,7 +3,19 @@ Fetch Rotten Tomatoes Data without an API key.
 
 ---
 
-### API (`RottenCrawler.js`)
+### Quick Start
+```js
+var RottenCrawler = require('./path/to/RottenCrawler.js');
+
+var rc = new RottenCrawler('/m/The_Dark_Knight/');
+rc.getMovieInfo()
+    .then(function() {
+        console.log(rc);
+    });
+```
+---
+
+### Available API
 
 #### `RottenCrawler(movieURL)`
 Construct a new `RottenCrawler` class, where `movieURL` is the RT's url e.g. `/m/The_Dark_Knight/`.  
