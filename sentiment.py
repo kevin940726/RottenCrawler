@@ -101,19 +101,19 @@ def main():
     with open(path, 'r') as data_file:
         movieList = json.load(data_file)
 
-    all_reviews = getAllReviews(movieList[0:50])
+    all_reviews = getAllCritics(movieList[0:50])
     word_features = get_word_features(get_words_in_tweets(all_reviews))
 
     training_set = [({word: (word in x[0]) for word in word_features}, x[1]) for x in all_reviews]
     classifier = nltk.NaiveBayesClassifier.train(training_set)
 
-    all_critics = getAllReviews(movieList[50:100])
+    all_critics = getAllCritics(movieList[50:100])
     testing_set = [({word: (word in x[0]) for word in word_features}, x[1]) for x in all_critics]
     most_informative = save_most_informative_features(classifier, len(word_features))
     accuracy = nltk.classify.util.accuracy(classifier, testing_set)
     print accuracy
 
-    with open("most_informative_reviews.txt", 'w+') as outfile:
+    with open("most_informative_critics.txt", 'w+') as outfile:
         outfile.write("%f\n" % accuracy)
         for feature in most_informative:
             outfile.write("%s\n" % feature)
