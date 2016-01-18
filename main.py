@@ -1,3 +1,4 @@
+from __future__ import division
 import nltk
 import string
 import json
@@ -63,6 +64,8 @@ def readMovie(movie):
     cosine[movie["movieTitle"]] = (tfidf * tfidf.T).A
 
 def recommender(movie):
+    critic_num = len(token_dict[movie["movieTitle"]]["critics"])
+
     avg_cosine = np.average(cosine[movie["movieTitle"]][critic_num:, :critic_num], axis=1)
     sorted_reviewers = np.argsort(avg_cosine)[::-1]
     sorted_reviewers = map(lambda x: addToNewDict(movie["reviews"][x], 'simScore', avg_cosine[x]), sorted_reviewers)
@@ -88,6 +91,30 @@ def HAC(movie):
 
     return A
 
+def newScore(movie):
+    critic_num = len(token_dict[movie["movieTitle"]]["critics"])
+    N = len(token_dict[movie["movieTitle"]]["reviews"])
+    C = cosine[movie["movieTitle"]][critic_num:, critic_num:]
+    R = map(lambda x: x['score'], movie['reviews'])
+
+    print C.shape
+    # exclude self similarity
+    # np.fill_diagonal(C, 0)
+    # normalize
+    row_sums = C.sum(axis=1)
+    C = C / row_sums[:, np.newaxis]
+    # calculate new score
+    new_score = np.dot(C, R)
+
+    # update new score
+    new_review = movie['reviews']
+    map(lambda x, y: x.update({'newScore': y}), new_review, new_score)
+
+    testing = map(lambda x: abs(x['score'] - x['newScore']) < 5, new_review)
+    print np.sum(testing)
+
+    return new_review
+
 
 path = 'rt100Movies.json'
 token_dict = {}
@@ -97,6 +124,7 @@ cosine = {}
 vect = TfidfVectorizer(tokenizer=tokenize, stop_words='english')
 reviewer_list = {}
 cluster = {}
+score_list = {}
 
 
 def main():
@@ -104,17 +132,20 @@ def main():
         movieList = json.load(data_file)
 
     count = 0
+    np.seterr(divide='ignore', invalid='ignore')
     for movie in movieList:
         if movie["reviews"] and movie["critics"]:
             readMovie(movie)
             # reviewer_list[movie["movieTitle"]] = recommender(movie)
-            cluster[movie["movieTitle"]] = HAC(movie)
+            # cluster[movie["movieTitle"]] = HAC(movie)
+            score_list[movie["movieTitle"]] = newScore(movie)
 
         count += 1
         print count
+        break
 
-    with open("clusterList.json", 'w+') as outfile:
-        json.dump(cluster, outfile, indent=4, separators=(',', ': '))
+    with open("scoreList.json", 'w+') as outfile:
+        json.dump(score_list, outfile, indent=4, separators=(',', ': '))
 
 if __name__ == "__main__":
     main()
