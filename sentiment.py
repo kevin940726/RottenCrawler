@@ -22,7 +22,7 @@ def sentiment(movie):
     return movie['reviews']
 
 def getAllReviews(movieList):
-    reviews = np.array(map(lambda x: x["reviews"] or [], movieList))
+    reviews = np.array(map(lambda x: x["reviews"], movieList))
     reviews = np.concatenate(reviews)
 
     tokenizeReview = []
@@ -37,7 +37,7 @@ def getAllReviews(movieList):
     return tokenizeReview
 
 def getAllCritics(movieList):
-    reviews = np.array(map(lambda x: x["critics"] or [], movieList))
+    reviews = np.array(map(lambda x: x["critics"], movieList))
     reviews = np.concatenate(reviews)
 
     tokenizeReview = []
@@ -101,15 +101,15 @@ def main():
     with open(path, 'r') as data_file:
         movieList = json.load(data_file)
 
-    all_reviews = getAllReviews(movieList[0:80])
+    all_reviews = getAllReviews(movieList[0:50])
     word_features = get_word_features(get_words_in_tweets(all_reviews))
 
     training_set = [({word: (word in x[0]) for word in word_features}, x[1]) for x in all_reviews]
     classifier = nltk.NaiveBayesClassifier.train(training_set)
 
-    all_critics = getAllReviews(movieList[80:100])
+    all_critics = getAllReviews(movieList[50:100])
     testing_set = [({word: (word in x[0]) for word in word_features}, x[1]) for x in all_critics]
-    most_informative = save_most_informative_features(classifier, 100)
+    most_informative = save_most_informative_features(classifier, len(word_features))
     accuracy = nltk.classify.util.accuracy(classifier, testing_set)
     print accuracy
 
