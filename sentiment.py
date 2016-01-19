@@ -7,6 +7,8 @@ from nltk.stem.porter import PorterStemmer
 from nltk.tokenize import RegexpTokenizer
 from nltk.corpus import stopwords
 
+import pickle
+
 path = 'rt100Movies.json'
 movieList = {}
 all_reviews = []
@@ -107,16 +109,19 @@ def main():
     training_set = [({word: (word in x[0]) for word in word_features}, x[1]) for x in all_reviews]
     classifier = nltk.NaiveBayesClassifier.train(training_set)
 
-    all_critics = getAllCritics(movieList)
-    testing_set = [({word: (word in x[0]) for word in word_features}, x[1]) for x in all_critics]
-    most_informative = save_most_informative_features(classifier, len(word_features))
-    accuracy = nltk.classify.util.accuracy(classifier, testing_set)
-    print accuracy
+    # all_critics = getAllCritics(movieList)
+    # testing_set = [({word: (word in x[0]) for word in word_features}, x[1]) for x in all_critics]
+    # most_informative = save_most_informative_features(classifier, len(word_features))
+    # accuracy = nltk.classify.util.accuracy(classifier, testing_set)
+    # print accuracy
 
-    with open("most_informative_rc.txt", 'w+') as outfile:
-        outfile.write("%f\n" % accuracy)
-        for feature in most_informative:
-            outfile.write("%s\n" % feature)
+    with open("review_classifier.pickle", 'wb') as infile:
+        pickle.dump(classifier, infile)
+
+    # with open("most_informative_rc.txt", 'w+') as outfile:
+    #     outfile.write("%f\n" % accuracy)
+    #     for feature in most_informative:
+    #         outfile.write("%s\n" % feature)
 
 if __name__ == "__main__":
     main()
